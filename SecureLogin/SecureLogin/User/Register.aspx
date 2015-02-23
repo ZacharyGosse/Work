@@ -11,15 +11,16 @@
     <div>
     
     </div>
-        <asp:Label ID="Label1" runat="server" Text="Label"></asp:Label>
-        <p>
-            <asp:TextBox ID="TextBox1" runat="server"></asp:TextBox>
+        Username<p>
+            <asp:TextBox ID="User" runat="server"></asp:TextBox>
         </p>
         <p>
-            <asp:Label ID="Label2" runat="server" Text="Label"></asp:Label>
-        </p>
+            Password</p>
         <p>
-            <asp:TextBox ID="TextBox2" runat="server"></asp:TextBox>
+            <asp:TextBox ID="Pass" runat="server"></asp:TextBox>
+        </p>
+        Confirm Password<p>
+            <asp:TextBox ID="PassConf" runat="server"></asp:TextBox>
         </p>
     </form>
 </body>
