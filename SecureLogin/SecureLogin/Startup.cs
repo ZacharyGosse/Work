@@ -8,7 +8,7 @@ namespace SecureLogin
     {
         public void Configuration(IAppBuilder app)
         {
-            ConfigureAuth(app);
+           
         }
     }
 }
