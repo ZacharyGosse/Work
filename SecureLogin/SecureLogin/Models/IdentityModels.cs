@@ -28,5 +28,7 @@ namespace SecureLogin.Models
         {
             return new ApplicationDbContext();
         }
+
+        public System.Data.Entity.DbSet<SecureLogin.Models.ApplicationUser> ApplicationUsers { get; set; }
     }
 }

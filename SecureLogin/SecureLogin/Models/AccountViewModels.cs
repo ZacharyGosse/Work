@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 
 namespace SecureLogin.Models
 {
@@ -33,6 +34,7 @@ namespace SecureLogin.Models
         [Display(Name = "Confirm new password")]
         [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+        public Image avatar { get; set; }
     }
 
     public class LoginViewModel
