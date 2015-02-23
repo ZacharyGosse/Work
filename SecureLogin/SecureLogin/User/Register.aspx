@@ -22,6 +22,7 @@
         Confirm Password<p>
             <asp:TextBox ID="PassConf" runat="server"></asp:TextBox>
         </p>
+        <asp:Button ID="Create" runat="server" Text="Create User" />
     </form>
 </body>
 </html>
