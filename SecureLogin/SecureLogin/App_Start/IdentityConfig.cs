@@ -8,6 +8,7 @@ using SecureLogin.Models;
 namespace SecureLogin
 {
     // Configure the application user manager used in this application. UserManager is defined in ASP.NET Identity and is used by the application.
+
     public class ApplicationUserManager : UserManager<ApplicationUser>
     {
         public ApplicationUserManager(IUserStore<ApplicationUser> store)
@@ -15,7 +16,7 @@ namespace SecureLogin
         {
         }
 
-        public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
+        public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context) 
         {
             var manager = new ApplicationUserManager(new UserStore<ApplicationUser>(context.Get<ApplicationDbContext>()));
             // Configure validation logic for usernames
@@ -33,8 +34,7 @@ namespace SecureLogin
                 RequireLowercase = true,
                 RequireUppercase = true,
             };
-            // Register two factor authentication providers. This application uses Phone and Emails as a step of receiving a code for verifying the user. 
-            // For more information on using two-factor authentication please see http://go.microsoft.com/fwlink/?LinkID=391935
+            // Register two factor authentication providers. This application uses Phone and Emails as a step of receiving a code for verifying the user
             // You can write your own provider and plug in here.
             manager.RegisterTwoFactorProvider("PhoneCode", new PhoneNumberTokenProvider<ApplicationUser>
             {
@@ -42,7 +42,7 @@ namespace SecureLogin
             });
             manager.RegisterTwoFactorProvider("EmailCode", new EmailTokenProvider<ApplicationUser>
             {
-                Subject = "SecurityCode",
+                Subject = "Security Code",
                 BodyFormat = "Your security code is: {0}"
             });
             manager.EmailService = new EmailService();
