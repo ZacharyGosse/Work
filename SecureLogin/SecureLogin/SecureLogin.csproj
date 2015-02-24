@@ -225,8 +225,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Content\Files\images\thumbs\" />
     <Folder Include="Views\Avatar\" />
-    <Folder Include="Views\Users\images\thumbs\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
