@@ -36,9 +36,9 @@
             @Html.DisplayFor(modelItem => item.password)
         </td>
         <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
-            @Html.ActionLink("Profile", "Profile", new { id=item.Id }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.Id })
+            @Html.ActionLink("Edit", "Edit", new { uname=item.username}) |
+            @Html.ActionLink("Profile", "Profile", new { uname = item.username }) |
+            @Html.ActionLink("Delete", "Delete", new { uname = item.username })
         </td>
     </tr>
 }

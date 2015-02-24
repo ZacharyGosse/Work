@@ -9,6 +9,8 @@ using System.Web.Mvc;
 using SecureLogin.Models;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web.Security;
+using System.Threading.Tasks;
 
 namespace SecureLogin.Controllers
 {
@@ -23,13 +25,13 @@ namespace SecureLogin.Controllers
         }
 
         // GET: Users/Details/5
-        public ActionResult Details(int? id)
+        public ActionResult Details(string uname)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(uname))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            User user = db.Users.Find(id);
+            User user = db.Users.Find(uname);
             if (user == null)
             {
                 return HttpNotFound();
@@ -49,23 +51,26 @@ namespace SecureLogin.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ValidateInput(true)]
-        public ActionResult Create([Bind(Include = "Id,username,email,password")] User user)
+        public ActionResult Create([Bind(Include = "username,email,password")] User user)
         {
             if (ModelState.IsValid)
             {
+                /*
                 UTF8Encoding enc = new UTF8Encoding();
                 byte[] pwd = System.Text.Encoding.UTF8.GetBytes(user.password);
-
                 var rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
                 byte[] salt = new byte[8];
                 rng.GetBytes (salt); // Create an 8 byte salt
                 var iterations = 1000; // Choose a value that will perform well given your hardware.
                 var pbkdf2 = new System.Security.Cryptography.Rfc2898DeriveBytes(pwd, salt, iterations);
                 byte[] hash = pbkdf2.GetBytes (16); // Get 16 bytes for the hash
-
                 user.password = BitConverter.ToString(hash);
                 user.salt = BitConverter.ToString(pbkdf2.Salt);
-         
+                */
+
+                var crypto = new SimpleCrypto.PBKDF2();
+                user.password = crypto.Compute(user.password);
+                user.salt = crypto.Salt;
                 db.Users.Add(user);
                 db.SaveChanges();
 
@@ -77,13 +82,13 @@ namespace SecureLogin.Controllers
         }
 
         // GET: Users/Edit/5
-        public ActionResult Edit(int? id)
+        public ActionResult Edit(string uname)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(uname))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            User user = db.Users.Find(id);
+            User user = db.Users.Find(uname);
             if (user == null)
             {
                 return HttpNotFound();
@@ -134,6 +139,65 @@ namespace SecureLogin.Controllers
             return RedirectToAction("Index");
         }
 
+        
+        
+        [HttpGet]
+        public ActionResult Login()
+        {
+            return View();
+        }
+
+
+        // POST: Users/Edit/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login([Bind(Include = "username,password")] User user)
+        {
+            if (ModelState.IsValid)
+            {
+                if (IsValid(user.username, user.password))
+                {
+                    FormsAuthentication.SetAuthCookie(user.username, false);
+                    
+
+                  
+                    return RedirectToAction("Index", "Users");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Login Data is Incorrect");
+                }
+            }
+            return View(user);
+        }
+
+
+        private bool IsValid(string username, string password)
+        {
+            var crypto = new SimpleCrypto.PBKDF2();
+            bool isValid = false;
+
+            User user = db.Users.Find(username);
+
+            if (user != null)
+            {
+                if (user.password == crypto.Compute(password, user.salt))
+                {
+                    isValid = true;
+                }
+            }
+            return isValid;
+        }
+
+        public ActionResult LogOut()
+        {
+            FormsAuthentication.SignOut();
+            return View();
+        }
+
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -142,5 +206,9 @@ namespace SecureLogin.Controllers
             }
             base.Dispose(disposing);
         }
+
+
+
     }
+
 }
