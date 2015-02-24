@@ -73,18 +73,23 @@ namespace SecureLogin.Controllers
         }
 
         // GET: Users/Edit/5
-        public ActionResult Edit(string uname)
+        public ActionResult Edit()
         {
-            if (string.IsNullOrEmpty(uname))
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            
+            if (!Request.IsAuthenticated)
+            {   
+               return RedirectToAction("Login");
             }
-            User user = db.Users.Find(uname);
-            if (user == null)
-            {
-                return HttpNotFound();
-            }
-            return View(user);
+            string name = this.User.Identity.Name;
+
+            User user = db.Users.Find(name);
+            UserPassChange upc = new UserPassChange();
+            upc.email = user.email;
+            upc.username = user.username;
+            
+            user.password = "";
+           
+            return View(upc);
         }
 
         // POST: Users/Edit/5
@@ -92,15 +97,26 @@ namespace SecureLogin.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,username,email,password")] User user)
+        [ValidateInput(true)]
+        public ActionResult Edit([Bind(Include = "email,password,newpass,confpass")] UserPassChange upc)
         {
-            if (ModelState.IsValid)
-            {
-                db.Entry(user).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            return View(user);
+
+                var crypto = new SimpleCrypto.PBKDF2();
+                
+                upc.username = this.User.Identity.Name;
+                User user = db.Users.Find(upc.username);
+                upc.password = crypto.Compute(upc.password,user.salt);
+                if (upc.password == user.password) {
+                    user.password = crypto.Compute(upc.newpass);
+                    user.salt = crypto.Salt;
+                    db.Entry(user).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return RedirectToAction("Index");
+                }
+
+                ModelState.AddModelError("password", "Wrong Pass Nigga");
+                upc.password = "";
+            return View(upc);
         }
 
         // GET: Users/Delete/5

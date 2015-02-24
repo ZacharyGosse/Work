@@ -26,6 +26,35 @@ namespace SecureLogin.Models
        
     }
 
+    public class UserPassChange
+    {
+        [Key]
+        [Required]
+        [StringLength(15)]
+        public string username { get; set; }
+        [EmailAddress]
+        public string email { get; set; }
+        [Required]
+        [DataType(DataType.Password)]
+        [StringLength(150, MinimumLength = 7)]
+        public string password { get; set; }
+        [Required]
+        [DataType(DataType.Password)]
+        [StringLength(150, MinimumLength = 7)]
+        public string newpass { get; set; }
+        [Required]
+        [DataType(DataType.Password)]
+        [StringLength(150, MinimumLength = 7)]
+        [Compare("newpass", ErrorMessage="Passwords Do Not Match")]
+        public string confpass { get; set; }
+        public string salt { get; set; }
+
+        public byte[] avatar { get; set; }
+
+    }
+
+
+
     public class UserDBContext : DbContext
     {
         public DbSet<User> Users { get; set; }
