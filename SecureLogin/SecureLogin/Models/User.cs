@@ -3,6 +3,7 @@ using System.Data.Entity;
 using System.Data.Entity.Validation;
 using System.Drawing;
 using System.Text;
+using System.Web;
 
 namespace SecureLogin.Models
 {
@@ -20,6 +21,7 @@ namespace SecureLogin.Models
         public string password { get; set; }
         public string salt { get; set; }
 
+        
         public byte[] avatar {get;set;}
        
     }

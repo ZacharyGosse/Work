@@ -27,6 +27,7 @@ namespace SecureLogin.Controllers
         // GET: Users/Details/5
         public ActionResult Details(string uname)
         {
+            
             if (string.IsNullOrEmpty(uname))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -36,6 +37,7 @@ namespace SecureLogin.Controllers
             {
                 return HttpNotFound();
             }
+            
             return View(user);
         }
 
@@ -55,18 +57,7 @@ namespace SecureLogin.Controllers
         {
             if (ModelState.IsValid)
             {
-                /*
-                UTF8Encoding enc = new UTF8Encoding();
-                byte[] pwd = System.Text.Encoding.UTF8.GetBytes(user.password);
-                var rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
-                byte[] salt = new byte[8];
-                rng.GetBytes (salt); // Create an 8 byte salt
-                var iterations = 1000; // Choose a value that will perform well given your hardware.
-                var pbkdf2 = new System.Security.Cryptography.Rfc2898DeriveBytes(pwd, salt, iterations);
-                byte[] hash = pbkdf2.GetBytes (16); // Get 16 bytes for the hash
-                user.password = BitConverter.ToString(hash);
-                user.salt = BitConverter.ToString(pbkdf2.Salt);
-                */
+            
 
                 var crypto = new SimpleCrypto.PBKDF2();
                 user.password = crypto.Compute(user.password);
