@@ -17,10 +17,10 @@
         {
             newFileName = Guid.NewGuid().ToString() + "_" +
                 Path.GetFileName(photo.FileName);
-            imagePath = @"images\" + newFileName;
+            imagePath = @"\Content\images\" + newFileName;
             photo.Save(@"~\" + imagePath);
 
-           imageThumbPath = @"images\thumbs\" + newFileName;
+            imageThumbPath = @"\Content\images\thumbs\" + newFileName;
             photo.Resize(width: 60, height: 60, preserveAspectRatio: true,
                preventEnlarge: true);
             photo.Save(@"~\" + imageThumbPath);
@@ -66,7 +66,7 @@
                
                 <form action="" method="post" enctype="multipart/form-data">
                     <fieldset>
-                        <legend> Creating Thumbnail Image </legend>
+                       
                         <label for="Image">Image</label>
                         <input type="file" name="Image" />
                         <br />
