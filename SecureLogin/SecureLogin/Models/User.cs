@@ -23,6 +23,7 @@ namespace SecureLogin.Models
 
        
         public string avPath {get;set;}
+
         public string thumbPath { get; set; }
        
     }
@@ -51,11 +52,13 @@ namespace SecureLogin.Models
         public string salt { get; set; }
 
         public string avPath { get; set; }
+
         public string thumbPath { get; set; }
 
         [DataType(DataType.Upload)]
-        public HttpPostedFile File { get; set; }
-        
+        public HttpPostedFileBase File { get; set; }
+         
+
     }
 
 

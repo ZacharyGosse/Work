@@ -1,37 +1,13 @@
-﻿
-@using (Html.BeginForm())
-{
-  @model SecureLogin.Models.User
-  
+﻿@model SecureLogin.Models.UserPassChange
+@{
+
+
     ViewBag.Title = "Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    
-    WebImage photo = null;
-    var newFileName = "";
-    var imagePath = "";
-    var imageThumbPath = "";
-
-    if (IsPost)
-    {
-        photo = WebImage.GetImageFromRequest();
-        if (photo != null)
-        {
-            newFileName = Guid.NewGuid().ToString() + "_" +
-                Path.GetFileName(photo.FileName);
-            imagePath = @"\Content\images\" + newFileName;
-            photo.Save(@"~\" + imagePath);
-
-            imageThumbPath = @"\Content\images\thumbs\" + newFileName;
-            photo.Resize(width: 60, height: 60, preserveAspectRatio: true,
-               preventEnlarge: true);
-            photo.Save(@"~\" + imageThumbPath);
-        }
-    }
-}
 
     
-
-
+} 
+    @Html.AntiForgeryToken()
 <div>
    <h2>Profile</h2>
 </div>
@@ -59,10 +35,6 @@
             @Html.DisplayFor(model => model.email)
         </dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.avatar)
-        </dt>
-
         <dd>
                
                 <form action="" method="post" enctype="multipart/form-data">
@@ -70,15 +42,16 @@
                        
                         <label for="Image">Image</label>
                         <input type="file" name="Image" />
+                        @Html.EditorFor(model => model.File)
                         <br />
                         <input type="submit" value="Submit" />
                     </fieldset>
                 </form>
-@if (imagePath != "")
+@if (Model.thumbPath != "")
         {
             <div class="result">
-                <img src="@imageThumbPath" alt="Thumbnail image" />
-                <a href="@Html.AttributeEncode(imagePath)" target="_Self">
+                <img src="@Model.thumbPath" alt="Thumbnail image" />
+                <a href="@Html.AttributeEncode(Model.avPath)" target="_Self">
                     View full size
                 </a>
             </div>

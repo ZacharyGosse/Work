@@ -224,8 +224,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Content\Files\" />
-    <Folder Include="Content\images\thumbs\" />
+    <Folder Include="Content\Files\images\thumbs\" />
     <Folder Include="Views\Avatar\" />
   </ItemGroup>
   <ItemGroup>
