@@ -9,7 +9,7 @@
 } 
 <form action="" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true);
+    @Html.ValidationSummary(true)
 
     <div >
         <img src="@Html.AttributeEncode(Model.thumbPath)" alt=" Thumbnail image  " style="float: left" />
@@ -51,6 +51,8 @@
                     -->
                     @Html.LabelFor(model => model.Image)
                     @Html.TextBoxFor(model => model.Image, new { type = "file" })
+                    @ViewBag.error
+                    @Html.ValidationMessage("ImageUpload")
                     <br />
                     <input type="submit" value="Submit" />
                 </div>
