@@ -27,14 +27,14 @@ namespace SecureLogin.Controllers
         }
 
         // GET: Users/Details/5
-        public ActionResult Details(string uname)
+        public ActionResult Details()
         {
-            
-            if (string.IsNullOrEmpty(uname))
+
+            if (!Request.IsAuthenticated)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return RedirectToAction("Login");
             }
-            User user = db.Users.Find(uname);
+            User user = db.Users.Find(this.User.Identity.Name);
             if (user == null)
             {
                 return HttpNotFound();
@@ -56,9 +56,13 @@ namespace SecureLogin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Details([Bind(Include = "Image")] UserPassChange user)
+        public ActionResult Details([Bind(Include = "Image,email,username")] UserPassChange user)
         {
-
+            user.username = this.User.Identity.Name;
+            User ruser = db.Users.Find(user.username);
+            user.avPath = ruser.avPath;
+            user.thumbPath = ruser.thumbPath;
+            user.email = ruser.email;
             var validImageTypes = new string[]
             {
              "image/gif",
@@ -69,24 +73,25 @@ namespace SecureLogin.Controllers
 
     if (user.Image == null || user.Image.ContentLength == 0)
     {
-        ModelState.AddModelError("ImageUpload", "This field is required");
+       
     }
     else if (!validImageTypes.Contains(user.Image.ContentType))
     {
         ModelState.AddModelError("ImageUpload", "Please choose either a GIF, JPG or PNG image.");
+       
     }
+    else{
 
              WebImage photo;
             String newFileName = "";
             var imagePath = "";
             var imageThumbPath = "";
 
-            user.username = this.User.Identity.Name;
+            
            
                 photo = new System.Web.Helpers.WebImage(user.Image.InputStream);
 
-                if (photo != null)
-                {
+              
 
                     imagePath = "/Content/images/";
                     newFileName = Guid.NewGuid().ToString() + "_." + photo.ImageFormat;
@@ -98,7 +103,7 @@ namespace SecureLogin.Controllers
                     photo.Resize(width: 60, height: 60, preserveAspectRatio: true,
                        preventEnlarge: true);
                     photo.Save(@"~\" + imageThumbPath + newFileName);
-                    User ruser = db.Users.Find(user.username);
+                  
                     ruser.avPath = imagePath + newFileName;
                     ruser.thumbPath = imageThumbPath + newFileName;
                     user.avPath = ruser.avPath;
@@ -106,8 +111,8 @@ namespace SecureLogin.Controllers
                     user.email = ruser.email;
                     db.Entry(ruser).State = EntityState.Modified;
                     db.SaveChanges();
-                }
-            
+                
+            }
             return View(user);
         }
         // GET: Users/Create
@@ -267,11 +272,21 @@ namespace SecureLogin.Controllers
             return isValid;
         }
 
-        public ActionResult LogOut()
+        public ActionResult SignOut()
         {
             FormsAuthentication.SignOut();
+
+            return RedirectToAction("LogOut");
+        }
+
+        public ActionResult LogOut()
+        {
+
+
             return View();
         }
+       
+
 
 
         protected override void Dispose(bool disposing)

@@ -51,6 +51,8 @@
                     -->
                     @Html.LabelFor(model => model.Image)
                     @Html.TextBoxFor(model => model.Image, new { type = "file" })
+                    @ViewBag.error
+                    @Html.ValidationMessage("ImageUpload")
                     <br />
                     <input type="submit" value="Submit" />
                 </div>
