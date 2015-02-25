@@ -56,7 +56,7 @@ namespace SecureLogin.Models
         public string thumbPath { get; set; }
 
         [DataType(DataType.Upload)]
-        public HttpPostedFileBase File { get; set; }
+        public HttpPostedFileBase Image { get; set; }
          
 
     }

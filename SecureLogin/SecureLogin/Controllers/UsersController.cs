@@ -11,6 +11,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web.Security;
 using System.Threading.Tasks;
+using System.Web.Helpers;
+using System.IO;
 
 namespace SecureLogin.Controllers
 {
@@ -47,17 +49,66 @@ namespace SecureLogin.Controllers
             upc.username = user.username;
             upc.avPath = user.avPath;
             upc.thumbPath = user.thumbPath;
-            upc.email = upc.email;
+            upc.email = user.email;
 
             return (upc);  
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [ValidateInput(true)]
-        public ActionResult Details([Bind(Include = "username,email,password")] User user)
+        public ActionResult Details([Bind(Include = "Image")] UserPassChange user)
         {
-            return View(User);
+
+            var validImageTypes = new string[]
+            {
+             "image/gif",
+              "image/jpeg",
+               "image/pjpeg",
+                "image/png"
+            };
+
+    if (user.Image == null || user.Image.ContentLength == 0)
+    {
+        ModelState.AddModelError("ImageUpload", "This field is required");
+    }
+    else if (!validImageTypes.Contains(user.Image.ContentType))
+    {
+        ModelState.AddModelError("ImageUpload", "Please choose either a GIF, JPG or PNG image.");
+    }
+
+             WebImage photo;
+            String newFileName = "";
+            var imagePath = "";
+            var imageThumbPath = "";
+
+            user.username = this.User.Identity.Name;
+           
+                photo = new System.Web.Helpers.WebImage(user.Image.InputStream);
+
+                if (photo != null)
+                {
+
+                    imagePath = "/Content/images/";
+                    newFileName = Guid.NewGuid().ToString() + "_." + photo.ImageFormat;
+                  
+                   
+                    photo.Save(@"~\" + imagePath + newFileName);
+
+                    imageThumbPath = "/Content/images/thumbs/";
+                    photo.Resize(width: 60, height: 60, preserveAspectRatio: true,
+                       preventEnlarge: true);
+                    photo.Save(@"~\" + imageThumbPath + newFileName);
+                    User ruser = db.Users.Find(user.username);
+                    ruser.avPath = imagePath + newFileName;
+                    ruser.thumbPath = imageThumbPath + newFileName;
+                    user.avPath = ruser.avPath;
+                    user.thumbPath = ruser.thumbPath;
+                    user.email = ruser.email;
+                    db.Entry(ruser).State = EntityState.Modified;
+                    db.SaveChanges();
+                }
+            
+            return View(user);
         }
         // GET: Users/Create
         public ActionResult Create()
