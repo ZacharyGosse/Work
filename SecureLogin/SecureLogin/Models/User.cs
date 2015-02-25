@@ -22,7 +22,9 @@ namespace SecureLogin.Models
         public string salt { get; set; }
 
        
-        public byte[] avatar {get;set;}
+        public string avPath {get;set;}
+
+        public string thumbPath { get; set; }
        
     }
 
@@ -49,10 +51,13 @@ namespace SecureLogin.Models
         public string confpass { get; set; }
         public string salt { get; set; }
 
-        public byte[] avatar { get; set; }
+        public string avPath { get; set; }
+
+        public string thumbPath { get; set; }
+
         [DataType(DataType.Upload)]
-    
         public HttpPostedFileBase File { get; set; }
+         
 
     }
 

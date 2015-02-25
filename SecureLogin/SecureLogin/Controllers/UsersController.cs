@@ -37,10 +37,28 @@ namespace SecureLogin.Controllers
             {
                 return HttpNotFound();
             }
+            UserPassChange upc = uToUpc(user);
             
-            return View(user);
+            return View(upc);
         }
 
+        private UserPassChange uToUpc(User user){
+            UserPassChange upc = new UserPassChange();
+            upc.username = user.username;
+            upc.avPath = user.avPath;
+            upc.thumbPath = user.thumbPath;
+            upc.email = upc.email;
+
+            return (upc);  
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ValidateInput(true)]
+        public ActionResult Details([Bind(Include = "username,email,password")] User user)
+        {
+            return View(User);
+        }
         // GET: Users/Create
         public ActionResult Create()
         {
