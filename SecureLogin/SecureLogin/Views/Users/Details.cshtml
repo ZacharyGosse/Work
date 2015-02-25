@@ -9,7 +9,7 @@
 } 
 <form action="" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true);
+    @Html.ValidationSummary(true)
 
     <div >
         <img src="@Html.AttributeEncode(Model.thumbPath)" alt=" Thumbnail image  " style="float: left" />
