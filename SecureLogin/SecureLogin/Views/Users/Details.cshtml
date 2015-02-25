@@ -1,5 +1,6 @@
 ﻿
-@{
+@using (Html.BeginForm())
+{
   @model SecureLogin.Models.User
   
     ViewBag.Title = "Details";
@@ -17,10 +18,10 @@
         {
             newFileName = Guid.NewGuid().ToString() + "_" +
                 Path.GetFileName(photo.FileName);
-            imagePath = @"Content\images\" + newFileName;
+            imagePath = @"\Content\images\" + newFileName;
             photo.Save(@"~\" + imagePath);
 
-            imageThumbPath = @"Content\images\thumbs\" + newFileName;
+            imageThumbPath = @"\Content\images\thumbs\" + newFileName;
             photo.Resize(width: 60, height: 60, preserveAspectRatio: true,
                preventEnlarge: true);
             photo.Save(@"~\" + imageThumbPath);
