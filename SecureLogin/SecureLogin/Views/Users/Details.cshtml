@@ -10,13 +10,15 @@
 <form action="" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true);
-    <div>
-        <h2>Profile</h2>
+
+    <div >
+        <img src="@Html.AttributeEncode(Model.thumbPath)" alt=" Thumbnail image  " style="float: left" />
+        <h2 >Profile</h2>
     </div>
 
 
     <div>
-        <h4>User</h4>
+        
         <hr />
 
         <dl class="dl-horizontal">
@@ -56,7 +58,7 @@
                 @if (Model.thumbPath != "")
                 {
                     <div class="result">
-                        <img src="@Html.AttributeEncode(Model.thumbPath)" alt=" Thumbnail image  " />
+                        
                         <a href="@Html.AttributeEncode(Model.avPath)" target="_Self">
                             View full size
                         </a>
