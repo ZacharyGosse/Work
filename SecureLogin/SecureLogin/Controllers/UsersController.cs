@@ -77,46 +77,52 @@ namespace SecureLogin.Controllers
                 "image/png"
             };
 
-    if (user.Image == null || user.Image.ContentLength == 0)
-    {
-       
-    }
-    else if (!validImageTypes.Contains(user.Image.ContentType))
-    {
-        ModelState.AddModelError("ImageUpload", "Please choose either a GIF, JPG or PNG image.");
-       
-    }
-    else{
+            if (user.Image == null || user.Image.ContentLength == 0)
+            {
 
-             WebImage photo;
-            String newFileName = "";
-            var imagePath = "";
-            var imageThumbPath = "";
+            }
+            else if (user.Image.ContentLength > 1000000)
+            {
+                ModelState.AddModelError("ImageUpload", "Image cannot be larger than 1mb");
+            }
+            else if (!validImageTypes.Contains(user.Image.ContentType))
+            {
+                ModelState.AddModelError("ImageUpload", "Please choose either a GIF, JPG or PNG image.");
 
-            
-           
+            }
+
+            else
+            {
+
+                WebImage photo;
+                String newFileName = "";
+                var imagePath = "";
+                var imageThumbPath = "";
+
+
+
                 photo = new System.Web.Helpers.WebImage(user.Image.InputStream);
 
-              
 
-                    imagePath = "/Content/images/";
-                    newFileName = Guid.NewGuid().ToString() + "_." + photo.ImageFormat;
-                  
-                   
-                    photo.Save(@"~\" + imagePath + newFileName);
 
-                    imageThumbPath = "/Content/images/thumbs/";
-                    photo.Resize(width: 55, height: 55, preserveAspectRatio: true, preventEnlarge: true);
-                    photo.Save(@"~\" + imageThumbPath + newFileName);
-                  
-                    ruser.avPath = imagePath + newFileName;
-                    ruser.thumbPath = imageThumbPath + newFileName;
-                    user.avPath = ruser.avPath;
-                    user.thumbPath = ruser.thumbPath;
-                    user.email = ruser.email;
-                    db.Entry(ruser).State = EntityState.Modified;
-                    db.SaveChanges();
-                
+                imagePath = "/Content/images/";
+                newFileName = Guid.NewGuid().ToString() + "_." + photo.ImageFormat;
+
+
+                photo.Save(@"~\" + imagePath + newFileName);
+
+                imageThumbPath = "/Content/images/thumbs/";
+                photo.Resize(width: 100, height: 100, preserveAspectRatio: true, preventEnlarge: true);
+                photo.Save(@"~\" + imageThumbPath + newFileName);
+
+                ruser.avPath = imagePath + newFileName;
+                ruser.thumbPath = imageThumbPath + newFileName;
+                user.avPath = ruser.avPath;
+                user.thumbPath = ruser.thumbPath;
+                user.email = ruser.email;
+                db.Entry(ruser).State = EntityState.Modified;
+                db.SaveChanges();
+
             }
             return View(user);
         }
@@ -141,6 +147,10 @@ namespace SecureLogin.Controllers
                 var crypto = new SimpleCrypto.PBKDF2();
                 user.password = crypto.Compute(user.password);
                 user.salt = crypto.Salt;
+
+                string actKey = "/Activ?kstr=" + RandomPassword.Generate(44, PasswordGroup.Uppercase, PasswordGroup.Lowercase, PasswordGroup.Numeric);
+                user.actString = actKey;
+
                 db.Users.Add(user);
                 db.SaveChanges();
 
@@ -198,14 +208,13 @@ namespace SecureLogin.Controllers
             return View(upc);
         }
 
+    
+
         [HttpGet]
         public ActionResult Login()
         {
-
-          
             return View();
         }
-
 
         // POST: Users/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
@@ -218,49 +227,92 @@ namespace SecureLogin.Controllers
             {
                 if (IsValid(user.username, user.password))
                 {
+                    user = db.Users.Find(user.username);
                     FormsAuthentication.SetAuthCookie(user.username, false);
-                  
+                    user.attempts = 0;
+                    db.Entry(user).State = EntityState.Modified;
+                    db.SaveChanges();
                     return RedirectToAction("Details", "Users");
+                }
+                user = db.Users.Find(user.username);
+                if (user.locked == true) { 
+                    ModelState.AddModelError("LoginMsg", "This Account is locked, follow link in email to unlock"); 
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Login Data is Incorrect");
+                    user.attempts++;   
+                    ModelState.AddModelError("LoginMsg", "Login Data is Incorrect. "+ (5-user.attempts)+ " Attempts remaining");      
+                    if (user.attempts == 5)
+                    {
+                        user.locked = true;
+                        string unlKey = "/Unlock?kstr=" + RandomPassword.Generate(44, PasswordGroup.Uppercase, PasswordGroup.Lowercase, PasswordGroup.Numeric);
+                        
+                        user.unlString = unlKey;
+                        db.Entry(user).State = EntityState.Modified;
+                        db.SaveChanges();
+                    }
+                    db.Entry(user).State = EntityState.Modified;
+                    db.SaveChanges();
                 }
             }
             return View(user);
         }
 
+        public ActionResult Reset(string kstr)
+        {
+            if (kstr != null && kstr.Length > 0 && kstr.Length < 45)
+            {
+                kstr = Regex.Replace(kstr, "[^0-9a-zA-Z]+", "");
+                User user = db.Users.FirstOrDefault(User => User.forString == "/Unlock?kstr="+kstr);
+
+                UserPassChange upc = uToUpc(user);
+                if (user != null)
+                {
+
+                    return View(upc);
+                }
+            }
+            return RedirectToAction("Index");
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Reset([Bind(Include = "newpass,confpass")] UserPassChange upc)
+        public ActionResult Reset([Bind(Include = "username,newpass,confpass")] UserPassChange upc)
         {
 
             var crypto = new SimpleCrypto.PBKDF2();
-
-            upc.username = this.User.Identity.Name;
-            User user = db.Users.Find(upc.username);
-            upc.password = crypto.Compute(upc.newpass, user.salt);
-            if (upc.password == user.password)
-            {
-                user.password = crypto.Compute(upc.newpass);
+            
+            //username = ViewBag.username;
+            //upc.username = this.User.Identity.Name;
+            User user = db.Users.Find(upc.username) ;
+            upc.password = crypto.Compute(upc.newpass);
+            user.password = upc.password;
+            user.forString = "";
                 user.salt = crypto.Salt;
                 db.Entry(user).State = EntityState.Modified;
                 db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            return View(upc);
+                ModelState.AddModelError("LoginMsg", "Password Successfuly Changed!");
+                return RedirectToAction("Login");
         }
-        public ActionResult Reset(string forKey){
-            forKey = Regex.Replace(forKey, "[^0-9a-zA-Z]+", "");
-            User user = db.Users.FirstOrDefault(User => User.forString == forKey);
-            UserPassChange upc = uToUpc(user);
-            if (user != null)
+        public ActionResult Unlock(string kstr)
+        {
+            if (kstr != null && kstr.Length > 0 && kstr.Length < 45)
             {
-                return View(upc);
+                kstr = Regex.Replace(kstr, "[^0-9a-zA-Z]+", "");
+                User user = db.Users.FirstOrDefault(User => User.unlString == "/Unlock?kstr="+kstr);
+               
+                UserPassChange upc = uToUpc(user);
+                if (user != null)
+                {
+                    user.locked = false;
+                    user.attempts = 0;
+                    user.unlString = null;
+                    db.Entry(user).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return RedirectToAction("Login", "Users", new { LoginMsg = "Unlock Successful" });
+                }
             }
-
-            return RedirectToAction("Reset");
+            return RedirectToAction("Index");
         }
 
         public ActionResult Forgot()
@@ -273,11 +325,15 @@ namespace SecureLogin.Controllers
         public ActionResult Forgot([Bind(Include = "username,email")] UserPassChange upc)
         {
 
-            User user = db.Users.Find(upc.username, upc.email);
+            User user = db.Users.Find(upc.username);
+            if (user.email != upc.email) 
+            { 
+                user = null; 
+            }
             
             if (user != null)
             {
-                String forKey = RandomPassword.Generate(48, PasswordGroup.Uppercase, PasswordGroup.Lowercase, PasswordGroup.Numeric);
+                String forKey = "/Reset?kstr=" + RandomPassword.Generate(44, PasswordGroup.Uppercase, PasswordGroup.Lowercase, PasswordGroup.Numeric);
                 user.forString = forKey;
                 db.Entry(user).State = EntityState.Modified;
                 db.SaveChanges();
@@ -285,7 +341,7 @@ namespace SecureLogin.Controllers
              }
              else
                 {
-                    ModelState.AddModelError("", "User or Email not found");
+                    ModelState.AddModelError("Error", "User or Email not found");
                 }
 
             return View(upc);

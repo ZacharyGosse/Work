@@ -19,7 +19,9 @@
         <hr />
         @Html.ValidationSummary(true, "Login Failed.", new { @class = "text-danger" })
      
-
+        @ViewBag.error
+        @Html.ValidationMessage("LoginMsg")
+        
         <div class="form-group">
             @Html.LabelFor(model => model.username, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">

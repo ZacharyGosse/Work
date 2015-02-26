@@ -26,6 +26,8 @@ namespace SecureLogin.Models
         public string actString { get; set; }
 
         public string forString { get; set; }
+
+        public string unlString { get; set; }
        
         public string avPath {get;set;}
 
@@ -34,6 +36,8 @@ namespace SecureLogin.Models
         public int attempts  { get; set; }
 
         public bool activated { get; set; }
+
+        public bool locked { get; set; }
     }
 
     public class UserPassChange

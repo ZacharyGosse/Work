@@ -1,23 +1,45 @@
 ﻿@using SecureLogin.Models
+@model UserPassChange
 @{
     ViewBag.Title = "Forgot";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    
 }
 
 <h2>Forgot</h2>
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()
-<div class="form-group">
+
+    @ViewBag.error
+    @Html.ValidationMessage("Error")
+    
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.username, htmlAttributes: new { @class = "control-label col-md-2"})
+       
+       
+      
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.username, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.username, "Invalid Username", new { @class = "text-danger" })
+        </div>
+        <div class="form-group">
             @Html.LabelFor(model => model.email, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
                 @Html.EditorFor(model => model.email, new { htmlAttributes = new { @class = "form-control" } })
                 @Html.ValidationMessageFor(model => model.email, "Improper Email", new { @class = "text-danger" })
             </div>
         </div>
+        </div>
 
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="submit" class="btn btn-default" />
+        </div>
+    </div>
 }
 
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}
+        @section Scripts {
+            @Scripts.Render("~/bundles/jqueryval")
+        }
