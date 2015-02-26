@@ -217,8 +217,6 @@ namespace SecureLogin.Controllers
                 if (IsValid(user.username, user.password))
                 {
                     FormsAuthentication.SetAuthCookie(user.username, false);
-                    
-
                   
                     return RedirectToAction("Details", "Users");
                 }
@@ -237,7 +235,7 @@ namespace SecureLogin.Controllers
 
             upc.username = this.User.Identity.Name;
             User user = db.Users.Find(upc.username);
-            upc.password = crypto.Compute(upc.password, user.salt);
+            upc.password = crypto.Compute(upc.newpass, user.salt);
             if (upc.password == user.password)
             {
                 user.password = crypto.Compute(upc.newpass);
@@ -265,6 +263,8 @@ namespace SecureLogin.Controllers
             }
             return isValid;
         }
+
+
 
         public ActionResult SignOut()
         {
