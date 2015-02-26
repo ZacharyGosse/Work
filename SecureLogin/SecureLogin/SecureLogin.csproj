@@ -230,6 +230,7 @@
       <BrowseToURL>/Users/Login</BrowseToURL>
     </Content>
     <Content Include="Views\Users\LogOut.cshtml" />
+    <Content Include="Views\Users\Reset.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
