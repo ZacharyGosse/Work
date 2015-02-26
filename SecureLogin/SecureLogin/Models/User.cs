@@ -18,6 +18,7 @@ namespace SecureLogin.Models
         [Required]
         [DataType(DataType.Password)]
         [StringLength(150,MinimumLength=7)]
+
         public string password { get; set; }
         public string salt { get; set; }
 
@@ -39,15 +40,18 @@ namespace SecureLogin.Models
         [Required]
         [DataType(DataType.Password)]
         [StringLength(150, MinimumLength = 7)]
+
         public string password { get; set; }
         [Required]
         [DataType(DataType.Password)]
         [StringLength(150, MinimumLength = 7)]
+        [RegularExpression(@"(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{7,15}", ErrorMessage = "Password must contain 7-15 characters, at least one number, and both lower and upper case letters.")]
         public string newpass { get; set; }
         [Required]
         [DataType(DataType.Password)]
         [StringLength(150, MinimumLength = 7)]
         [Compare("newpass", ErrorMessage="Passwords Do Not Match")]
+
         public string confpass { get; set; }
         public string salt { get; set; }
 

@@ -42,14 +42,15 @@
             </dd>
 
             <dd>
-
-
-                <div>
+                @Html.LabelFor(model => model.Image)
+            </dd>
+            <dd>    
+            <div>
                     <!---
                      <label for="Image">Image</label>
                      <input type="file" name="Image" />
                     -->
-                    @Html.LabelFor(model => model.Image)
+                  
                     @Html.TextBoxFor(model => model.Image, new { type = "file" })
                     @ViewBag.error
                     @Html.ValidationMessage("ImageUpload")
