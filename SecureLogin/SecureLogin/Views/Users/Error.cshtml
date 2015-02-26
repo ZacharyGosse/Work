@@ -1,0 +1,15 @@
+﻿@using SecureLogin.Models
+@model UserPassChange
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Error</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @ViewBag.error
+    @Html.ValidationMessage("Error")

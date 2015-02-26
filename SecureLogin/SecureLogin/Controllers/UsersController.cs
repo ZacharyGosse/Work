@@ -13,6 +13,8 @@ using System.Web.Security;
 using System.Threading.Tasks;
 using System.Web.Helpers;
 using System.IO;
+using System.Text.RegularExpressions;
+using SimpleCrypto;
 
 namespace SecureLogin.Controllers
 {
@@ -230,6 +232,9 @@ namespace SecureLogin.Controllers
             return View(user);
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Reset([Bind(Include = "newpass,confpass")] UserPassChange upc)
         {
 
@@ -237,7 +242,7 @@ namespace SecureLogin.Controllers
 
             upc.username = this.User.Identity.Name;
             User user = db.Users.Find(upc.username);
-            upc.password = crypto.Compute(upc.password, user.salt);
+            upc.password = crypto.Compute(upc.newpass, user.salt);
             if (upc.password == user.password)
             {
                 user.password = crypto.Compute(upc.newpass);
@@ -246,6 +251,45 @@ namespace SecureLogin.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
+            return View(upc);
+        }
+        public ActionResult Reset(string forKey){
+            forKey = Regex.Replace(forKey, "[^0-9a-zA-Z]+", "");
+            User user = db.Users.FirstOrDefault(User => User.forString == forKey);
+            UserPassChange upc = uToUpc(user);
+            if (user != null)
+            {
+                return View(upc);
+            }
+
+            return RedirectToAction("Reset");
+        }
+
+        public ActionResult Forgot()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Forgot([Bind(Include = "username,email")] UserPassChange upc)
+        {
+
+            User user = db.Users.Find(upc.username, upc.email);
+            
+            if (user != null)
+            {
+                String forKey = RandomPassword.Generate(48, PasswordGroup.Uppercase, PasswordGroup.Lowercase, PasswordGroup.Numeric);
+                user.forString = forKey;
+                db.Entry(user).State = EntityState.Modified;
+                db.SaveChanges();
+                  return RedirectToAction("Index", "Users");
+             }
+             else
+                {
+                    ModelState.AddModelError("", "User or Email not found");
+                }
+
             return View(upc);
         }
 

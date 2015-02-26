@@ -23,11 +23,17 @@ namespace SecureLogin.Models
         public string password { get; set; }
         public string salt { get; set; }
 
+        public string actString { get; set; }
+
+        public string forString { get; set; }
        
         public string avPath {get;set;}
 
         public string thumbPath { get; set; }
        
+        public int attempts  { get; set; }
+
+        public bool activated { get; set; }
     }
 
     public class UserPassChange
