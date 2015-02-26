@@ -104,8 +104,7 @@ namespace SecureLogin.Controllers
                     photo.Save(@"~\" + imagePath + newFileName);
 
                     imageThumbPath = "/Content/images/thumbs/";
-                    photo.Resize(width: 60, height: 60, preserveAspectRatio: true,
-                       preventEnlarge: true);
+                    photo.Resize(width: 55, height: 55, preserveAspectRatio: true, preventEnlarge: true);
                     photo.Save(@"~\" + imageThumbPath + newFileName);
                   
                     ruser.avPath = imagePath + newFileName;
@@ -144,7 +143,7 @@ namespace SecureLogin.Controllers
                 db.SaveChanges();
 
 
-                return RedirectToAction("Index");
+                return RedirectToAction("Login");
             }
 
             return View(user);
@@ -178,7 +177,8 @@ namespace SecureLogin.Controllers
         [ValidateInput(true)]
         public ActionResult Edit([Bind(Include = "email,password,newpass,confpass")] UserPassChange upc)
         {
-
+            //reg ex for password validation. /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,15}
+            
                 var crypto = new SimpleCrypto.PBKDF2();
                 
                 upc.username = this.User.Identity.Name;
@@ -197,35 +197,6 @@ namespace SecureLogin.Controllers
             return View(upc);
         }
 
-        // GET: Users/Delete/5
-        public ActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            User user = db.Users.Find(id);
-            if (user == null)
-            {
-                return HttpNotFound();
-            }
-            return View(user);
-        }
-
-        // POST: Users/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-
-        public ActionResult DeleteConfirmed(int id)
-        {
-            User user = db.Users.Find(id);
-            db.Users.Remove(user);
-            db.SaveChanges();
-            return RedirectToAction("Index");
-        }
-
-        
-        
         [HttpGet]
         public ActionResult Login()
         {
@@ -250,7 +221,7 @@ namespace SecureLogin.Controllers
                     
 
                   
-                    return RedirectToAction("Index", "Users");
+                    return RedirectToAction("Details", "Users");
                 }
                 else
                 {

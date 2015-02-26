@@ -43,6 +43,8 @@
     <Reference Include="PBKDF2.NET">
       <HintPath>..\packages\PBKDF2.NET.2.0.0\lib\net45\PBKDF2.NET.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="SimpleCrypto">
       <HintPath>..\packages\SimpleCrypto.0.3.30.26\lib\SimpleCrypto.dll</HintPath>
     </Reference>
@@ -107,6 +109,7 @@
       <Private>True</Private>
       <HintPath>..\packages\Antlr.3.4.1.9004\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
@@ -220,13 +223,12 @@
     <Content Include="Scripts\jquery-1.10.2.min.map" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Users\Create.cshtml" />
-    <Content Include="Views\Users\Delete.cshtml" />
     <Content Include="Views\Users\Details.cshtml" />
     <Content Include="Views\Users\Edit.cshtml" />
     <Content Include="Views\Users\Index.cshtml" />
-    <Page Include="Views\Users\Login.cshtml">
+    <Content Include="Views\Users\Login.cshtml">
       <BrowseToURL>/Users/Login</BrowseToURL>
-    </Page>
+    </Content>
     <Content Include="Views\Users\LogOut.cshtml" />
   </ItemGroup>
   <ItemGroup>
