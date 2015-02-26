@@ -121,3 +121,10 @@ C:\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.dll
 C:\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.pdb
 C:\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.Migrations.LogMigration.resources
 C:\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.csprojResolveAssemblyReference.cache
+C:\Users\Loneys\Desktop\Project\SecureLogin\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.csprojResolveAssemblyReference.cache
+C:\Users\Loneys\Desktop\Project\SecureLogin\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.Migrations.Users.resources
+C:\Users\Loneys\Desktop\Project\SecureLogin\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.Migrations.Users1.resources
+C:\Users\Loneys\Desktop\Project\SecureLogin\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.Migrations.LogMigration.resources
+C:\Users\Loneys\Desktop\Project\SecureLogin\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.csproj.GenerateResource.Cache
+C:\Users\Loneys\Desktop\Project\SecureLogin\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.dll
+C:\Users\Loneys\Desktop\Project\SecureLogin\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.pdb

@@ -171,13 +171,12 @@ namespace SecureLogin.Controllers
 
         // POST: Users/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ValidateInput(true)]
         public ActionResult Edit([Bind(Include = "email,password,newpass,confpass")] UserPassChange upc)
         {
-            //reg ex for password validation. /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,15}
             
                 var crypto = new SimpleCrypto.PBKDF2();
                 
@@ -192,7 +191,7 @@ namespace SecureLogin.Controllers
                     return RedirectToAction("Index");
                 }
 
-                ModelState.AddModelError("password", "Wrong Pass Nigga");
+                ModelState.AddModelError("password", "Wrong Password");
                 upc.password = "";
             return View(upc);
         }
@@ -231,6 +230,24 @@ namespace SecureLogin.Controllers
             return View(user);
         }
 
+        public ActionResult Reset([Bind(Include = "newpass,confpass")] UserPassChange upc)
+        {
+
+            var crypto = new SimpleCrypto.PBKDF2();
+
+            upc.username = this.User.Identity.Name;
+            User user = db.Users.Find(upc.username);
+            upc.password = crypto.Compute(upc.password, user.salt);
+            if (upc.password == user.password)
+            {
+                user.password = crypto.Compute(upc.newpass);
+                user.salt = crypto.Salt;
+                db.Entry(user).State = EntityState.Modified;
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(upc);
+        }
 
         private bool IsValid(string username, string password)
         {
