@@ -10,7 +10,6 @@ namespace SecureLogin.Migrations
         public Configuration()
         {
             AutomaticMigrationsEnabled = true;
-            ContextKey = "SecureLogin.Models.UserDBContext";
         }
 
         protected override void Seed(SecureLogin.Models.UserDBContext context)

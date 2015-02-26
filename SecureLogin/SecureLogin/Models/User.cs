@@ -16,6 +16,7 @@ namespace SecureLogin.Models
         [EmailAddress]
         public string email { get; set; }
         [Required]
+
         [DataType(DataType.Password)]
         [StringLength(150,MinimumLength=7)]
 

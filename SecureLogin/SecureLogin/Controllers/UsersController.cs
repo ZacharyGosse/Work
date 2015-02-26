@@ -19,6 +19,10 @@ namespace SecureLogin.Controllers
     public class UsersController : Controller
     {
         private UserDBContext db = new UserDBContext();
+        private LogDbContext log = new LogDbContext();
+        //Controller Private Methods//
+
+        
 
         // GET: Users
         public ActionResult Index()
@@ -29,7 +33,7 @@ namespace SecureLogin.Controllers
         // GET: Users/Details/5
         public ActionResult Details()
         {
-
+            
             if (!Request.IsAuthenticated)
             {
                 return RedirectToAction("Login");
@@ -131,7 +135,7 @@ namespace SecureLogin.Controllers
             if (ModelState.IsValid)
             {
             
-
+               
                 var crypto = new SimpleCrypto.PBKDF2();
                 user.password = crypto.Compute(user.password);
                 user.salt = crypto.Salt;
@@ -196,6 +200,8 @@ namespace SecureLogin.Controllers
         [HttpGet]
         public ActionResult Login()
         {
+
+          
             return View();
         }
 
