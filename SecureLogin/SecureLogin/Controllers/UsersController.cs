@@ -219,8 +219,6 @@ namespace SecureLogin.Controllers
                 if (IsValid(user.username, user.password))
                 {
                     FormsAuthentication.SetAuthCookie(user.username, false);
-                    
-
                   
                     return RedirectToAction("Details", "Users");
                 }
@@ -309,6 +307,8 @@ namespace SecureLogin.Controllers
             }
             return isValid;
         }
+
+
 
         public ActionResult SignOut()
         {
