@@ -13,5 +13,10 @@
 
     @ViewBag.error
     @Html.ValidationMessage("Error")
+
+
+    <div>
+        <a href="<%= Html.Encode(Request.UrlReferrer.ToString()) %>">Back</a>
+    </div>
 }
     
