@@ -15,6 +15,9 @@ using System.Web.Helpers;
 using System.IO;
 using System.Text.RegularExpressions;
 using SimpleCrypto;
+using System.Drawing.Imaging;
+using System.Drawing;
+
 
 namespace SecureLogin.Controllers
 {
@@ -77,6 +80,8 @@ namespace SecureLogin.Controllers
                 "image/png"
             };
 
+           
+
             if (user.Image == null || user.Image.ContentLength == 0)
             {
 
@@ -88,33 +93,46 @@ namespace SecureLogin.Controllers
             else if (!validImageTypes.Contains(user.Image.ContentType))
             {
                 ModelState.AddModelError("ImageUpload", "Please choose either a GIF, JPG or PNG image.");
-
             }
-
+            
             else
             {
 
                 WebImage photo;
+                
                 String newFileName = "";
                 var imagePath = "";
                 var imageThumbPath = "";
 
 
 
-                photo = new System.Web.Helpers.WebImage(user.Image.InputStream);
-
-
-
+                photo = new WebImage(user.Image.InputStream);
                 imagePath = "/Content/images/";
-                newFileName = Guid.NewGuid().ToString() + "_." + photo.ImageFormat;
-
-
-                photo.Save(@"~\" + imagePath + newFileName);
-
                 imageThumbPath = "/Content/images/thumbs/";
-                photo.Resize(width: 100, height: 100, preserveAspectRatio: true, preventEnlarge: true);
-                photo.Save(@"~\" + imageThumbPath + newFileName);
+                newFileName = Guid.NewGuid().ToString() + "_." + ImageFormat.Bmp;
 
+                string pathFull = imagePath + newFileName;
+                string thumbFull = imagePath + newFileName;
+                photo.Save(@"~\" + pathFull);
+                
+                photo.Resize(width: 100, height: 100, preserveAspectRatio: true, preventEnlarge: true);
+
+                photo.Save(@"~\" + thumbFull);
+                //Image objImage = Image.FromFile(imageFull);
+                //= new Bitmap(objImage);
+                //= new Bitmap(objImage, 2, 2);
+                
+
+
+                //photo.Save(@"~\" + imagePath + newFileName);
+                //picture = new Bitmap(picture, 10, 10);
+               //photo.Save(@"~\" + imageThumbPath + newFileName);
+                
+               
+             
+               
+               
+             
                 ruser.avPath = imagePath + newFileName;
                 ruser.thumbPath = imageThumbPath + newFileName;
                 user.avPath = ruser.avPath;
@@ -125,6 +143,8 @@ namespace SecureLogin.Controllers
 
             }
             return View(user);
+
+
         }
         // GET: Users/Create
         public ActionResult Create()
