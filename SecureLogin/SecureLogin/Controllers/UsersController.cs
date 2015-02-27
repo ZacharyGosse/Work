@@ -139,7 +139,13 @@ namespace SecureLogin.Controllers
 
             }
             return View(user);
+        
         }
+        public ActionResult Error()
+        {
+            return View();
+        }
+
         // GET: Users/Create
         public ActionResult Create()
         {
