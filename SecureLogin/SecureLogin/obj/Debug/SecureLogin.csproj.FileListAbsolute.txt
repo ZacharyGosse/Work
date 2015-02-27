@@ -127,4 +127,5 @@ C:\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.Migrations.LogMigra
 C:\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.csproj.GenerateResource.Cache
 C:\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.dll
 C:\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.pdb
+C:\SecureLogin\SecureLogin\SecureLogin\bin\SecureSockets.dll
 C:\SecureLogin\SecureLogin\SecureLogin\obj\Debug\SecureLogin.csprojResolveAssemblyReference.cache

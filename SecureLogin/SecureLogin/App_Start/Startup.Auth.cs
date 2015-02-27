@@ -25,6 +25,7 @@ namespace WebApplication1
             {
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
                 LoginPath = new PathString("/Users/Login")
+                
             });
         }
     }

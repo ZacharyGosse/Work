@@ -1,8 +1,23 @@
 ﻿
 @{
-    ViewBag.Title = "LogOut";
+    ViewBag.Title = "Success";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>You have been logged out</h2>
 
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    
+  
+<h2>Success!</h2>
+    @((string)(Session["smsg"]))
+
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Continue" class="btn btn-default" />
+        </div>
+    </div>
+    Session.Abandon();
+}

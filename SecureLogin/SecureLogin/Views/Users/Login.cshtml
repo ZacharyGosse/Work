@@ -15,7 +15,7 @@
     @Html.AntiForgeryToken()
 
     <div class="form-horizontal">
-        <h4>User</h4>
+       
         <hr />
         @Html.ValidationSummary(true, "Login Failed.", new { @class = "text-danger" })
      
@@ -37,6 +37,12 @@
                 @Html.ValidationMessageFor(model => model.password, "", new { @class = "text-danger" })
             </div>
         </div>
+        <div class="form-group">
+            <div class="col-md-10">
+                Remember Me:   @Html.CheckBox("rememberMe", htmlAttributes: new { @class = "control-label col-md-2" })
+                </div>
+            </div>
+
 
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">

@@ -15,15 +15,27 @@ using System.Web.Helpers;
 using System.IO;
 using System.Text.RegularExpressions;
 using SimpleCrypto;
+using System.Windows.Media.Imaging;
 
 namespace SecureLogin.Controllers
 {
     public class UsersController : Controller
     {
+        
         private UserDBContext db = new UserDBContext();
-        private LogDbContext log = new LogDbContext();
+        private LogDbContext logdb = new LogDbContext();
         //Controller Private Methods//
+        private void genLog(string action, string message, string username)
+        {
+            Log log = new Log();
+            log.action = action;
+            log.username = username;
+            log.message = message;
+            log.timestamp = DateTime.Now;
 
+            logdb.Logs.Add(log);
+            logdb.SaveChanges();
+        }
         
 
         // GET: Users
@@ -32,8 +44,8 @@ namespace SecureLogin.Controllers
             return View(db.Users.ToList());
         }
 
-        // GET: Users/Details/5
-        public ActionResult Details()
+        // GET: Users/Profile/5
+        public ActionResult Profile()
         {
             
             if (!Request.IsAuthenticated)
@@ -62,7 +74,7 @@ namespace SecureLogin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Details([Bind(Include = "Image,email,username")] UserPassChange user)
+        public ActionResult Profile([Bind(Include = "Image,email,username")] UserPassChange user)
         {
             user.username = this.User.Identity.Name;
             User ruser = db.Users.Find(user.username);
@@ -73,10 +85,10 @@ namespace SecureLogin.Controllers
             {
              "image/gif",
               "image/jpeg",
-               "image/pjpeg",
+               "image/bmp",
                 "image/png"
             };
-
+            //BitmapEncoder be = BitmapEncoder.Create(System.Guid);
             if (user.Image == null || user.Image.ContentLength == 0)
             {
 
@@ -123,6 +135,8 @@ namespace SecureLogin.Controllers
                 db.Entry(ruser).State = EntityState.Modified;
                 db.SaveChanges();
 
+                genLog("Profile", "Update Profile", user.username);
+
             }
             return View(user);
         }
@@ -134,31 +148,37 @@ namespace SecureLogin.Controllers
 
         // POST: Users/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // more Profile see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ValidateInput(true)]
-        public ActionResult Create([Bind(Include = "username,email,password")] User user)
+        public ActionResult Create([Bind(Include = "username,email,newpass,confpass")] RegisterUser regU)
         {
             if (ModelState.IsValid)
             {
             
                
                 var crypto = new SimpleCrypto.PBKDF2();
-                user.password = crypto.Compute(user.password);
-                user.salt = crypto.Salt;
+                regU.newpass = crypto.Compute(regU.newpass);
+                
 
+                User user = new User();
+                user.username = regU.username;
+                user.password = regU.newpass;
+                user.salt = crypto.Salt;
+                user.email = regU.email;
+                user.activated = false;
                 string actKey = "/Activ?kstr=" + RandomPassword.Generate(44, PasswordGroup.Uppercase, PasswordGroup.Lowercase, PasswordGroup.Numeric);
                 user.actString = actKey;
-
+                regU = null;
                 db.Users.Add(user);
                 db.SaveChanges();
-
-
-                return RedirectToAction("Login");
+                Session["smsg"] = "User Created, You will recieve a verification email";
+                genLog("Create", "User Created: Verify Link = " + actKey, user.username);
+                return RedirectToAction("Success");
             }
 
-            return View(user);
+            return View(regU);
         }
 
         // GET: Users/Edit/5
@@ -200,7 +220,9 @@ namespace SecureLogin.Controllers
                     user.salt = crypto.Salt;
                     db.Entry(user).State = EntityState.Modified;
                     db.SaveChanges();
-                    return RedirectToAction("Index");
+                    Session["smsg"] = "Password Updated.";
+                    genLog("PassChange", "Password Updated", user.username);
+                    return RedirectToAction("Success");
                 }
 
                 ModelState.AddModelError("password", "Wrong Password");
@@ -213,48 +235,60 @@ namespace SecureLogin.Controllers
         [HttpGet]
         public ActionResult Login()
         {
+            if (Request.IsAuthenticated)
+            {
+                return RedirectToAction("Index");
+            }
             return View();
         }
 
         // POST: Users/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // more Profile see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login([Bind(Include = "username,password")] User user)
+        public ActionResult Login([Bind(Include = "username,password")] User user,bool rememberMe)
         {
             if (ModelState.IsValid)
             {
                 if (IsValid(user.username, user.password))
                 {
                     user = db.Users.Find(user.username);
-                    FormsAuthentication.SetAuthCookie(user.username, false);
+                    FormsAuthentication.SetAuthCookie(user.username, rememberMe);
                     user.attempts = 0;
                     db.Entry(user).State = EntityState.Modified;
                     db.SaveChanges();
-                    return RedirectToAction("Details", "Users");
+                    genLog("Login", "Logged in", user.username);
+                    return RedirectToAction("Profile", "Users");
                 }
                 user = db.Users.Find(user.username);
                 if (user.locked == true) { 
-                    ModelState.AddModelError("LoginMsg", "This Account is locked, follow link in email to unlock"); 
+                    ModelState.AddModelError("LoginMsg", "Account Locked. Follow link in email to unlock");
+                   
                 }
                 else
                 {
-                    user.attempts++;   
-                    ModelState.AddModelError("LoginMsg", "Login Data is Incorrect. "+ (5-user.attempts)+ " Attempts remaining");      
+                    user.attempts++;
                     if (user.attempts == 5)
                     {
                         user.locked = true;
                         string unlKey = "/Unlock?kstr=" + RandomPassword.Generate(44, PasswordGroup.Uppercase, PasswordGroup.Lowercase, PasswordGroup.Numeric);
-                        
+                        genLog("Login", "Accout Locking, link = " + unlKey, user.username);
                         user.unlString = unlKey;
+                        ModelState.AddModelError("LoginMsg", "This Account is locked, follow link in email to unlock");
+                        db.Entry(user).State = EntityState.Modified;
+                        db.SaveChanges();
+                        
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("LoginMsg", "Login Data is Incorrect. " + (5 - user.attempts) + " Attempts remaining");
                         db.Entry(user).State = EntityState.Modified;
                         db.SaveChanges();
                     }
-                    db.Entry(user).State = EntityState.Modified;
-                    db.SaveChanges();
                 }
             }
+            user.password = "";
             return View(user);
         }
 
@@ -263,7 +297,7 @@ namespace SecureLogin.Controllers
             if (kstr != null && kstr.Length > 0 && kstr.Length < 45)
             {
                 kstr = Regex.Replace(kstr, "[^0-9a-zA-Z]+", "");
-                User user = db.Users.FirstOrDefault(User => User.forString == "/Unlock?kstr="+kstr);
+                User user = db.Users.FirstOrDefault(User => User.forString == "/Reset?kstr="+kstr);
 
                 UserPassChange upc = uToUpc(user);
                 if (user != null)
@@ -274,6 +308,8 @@ namespace SecureLogin.Controllers
             }
             return RedirectToAction("Index");
         }
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -291,8 +327,10 @@ namespace SecureLogin.Controllers
                 user.salt = crypto.Salt;
                 db.Entry(user).State = EntityState.Modified;
                 db.SaveChanges();
-                ModelState.AddModelError("LoginMsg", "Password Successfuly Changed!");
-                return RedirectToAction("Login");
+                genLog("Reset","Password Reset", user.username);
+                Session["smsg"] = "Your password has been reset.";
+                //ModelState.AddModelError("LoginMsg", "Password Successfuly Changed!");
+                return RedirectToAction("Success");
         }
         public ActionResult Unlock(string kstr)
         {
@@ -309,7 +347,9 @@ namespace SecureLogin.Controllers
                     user.unlString = null;
                     db.Entry(user).State = EntityState.Modified;
                     db.SaveChanges();
-                    return RedirectToAction("Login", "Users", new { LoginMsg = "Unlock Successful" });
+                    genLog("Unlock", "Accout Unlocking", user.username);
+                    Session["smsg"] = "Your account has been unlocked.";
+                    return RedirectToAction("Success");
                 }
             }
             return RedirectToAction("Index");
@@ -326,7 +366,11 @@ namespace SecureLogin.Controllers
         {
 
             User user = db.Users.Find(upc.username);
-            if (user.email != upc.email) 
+            if (user == null)
+            {
+
+            }
+            else if (user.email != upc.email) 
             { 
                 user = null; 
             }
@@ -337,6 +381,7 @@ namespace SecureLogin.Controllers
                 user.forString = forKey;
                 db.Entry(user).State = EntityState.Modified;
                 db.SaveChanges();
+                genLog("Forgot", "Accout Reset Sent: link = "+forKey, user.username);
                   return RedirectToAction("Index", "Users");
              }
              else
@@ -368,6 +413,7 @@ namespace SecureLogin.Controllers
 
         public ActionResult SignOut()
         {
+            genLog("SignOut", "Logged Off", this.User.Identity.Name);
             FormsAuthentication.SignOut();
 
             return RedirectToAction("LogOut");
@@ -379,10 +425,48 @@ namespace SecureLogin.Controllers
 
             return View();
         }
-       
 
 
+        public ActionResult Activ(string kstr)
+        {
+            if (kstr != null && kstr.Length > 0 && kstr.Length < 45)
+            {
+                kstr = Regex.Replace(kstr, "[^0-9a-zA-Z]+", "");
+                User user = db.Users.FirstOrDefault(User => User.actString == "/Activ?kstr=" + kstr);
 
+                if (user != null)
+                {
+
+                    user.actString = null;
+                    user.activated = true;
+                    db.Entry(user).State = EntityState.Modified;
+                    db.SaveChanges();
+                    genLog("Activ", "Accout Verified", user.username);
+                    Session["smsg"] = "Your account has been activated.";
+                    //ModelState.AddModelError("LoginMsg", "Password Successfuly Changed!");
+                    return RedirectToAction("Success");
+                    
+                }
+            }
+            return RedirectToAction("Index");
+        }
+
+        public ActionResult Success()
+        {
+            if (Session["smsg"] == null)
+            {
+                RedirectToAction("Index");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Success(string topost)
+        {
+            //Session.Abandon();
+            return RedirectToAction("Login");
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)

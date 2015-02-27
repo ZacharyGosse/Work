@@ -39,6 +39,28 @@ namespace SecureLogin.Models
 
         public bool locked { get; set; }
     }
+    
+    public class RegisterUser{
+         [Key]
+        [Required]
+        [StringLength(15)]
+        public string username { get; set; }
+        [EmailAddress]
+        public string email { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        [StringLength(150, MinimumLength = 7)]
+        [RegularExpression(@"(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{7,15}", ErrorMessage = "Password must contain 7-15 characters, at least one number, and both lower and upper case letters.")]
+        public string newpass { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        [StringLength(150, MinimumLength = 7)]
+        [Compare("newpass", ErrorMessage = "Passwords Do Not Match")]
+        public string confpass { get; set; }
+    }
+
 
     public class UserPassChange
     {
@@ -53,16 +75,17 @@ namespace SecureLogin.Models
         [StringLength(150, MinimumLength = 7)]
 
         public string password { get; set; }
+
         [Required]
         [DataType(DataType.Password)]
         [StringLength(150, MinimumLength = 7)]
         [RegularExpression(@"(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{7,15}", ErrorMessage = "Password must contain 7-15 characters, at least one number, and both lower and upper case letters.")]
         public string newpass { get; set; }
+
         [Required]
         [DataType(DataType.Password)]
         [StringLength(150, MinimumLength = 7)]
-        [Compare("newpass", ErrorMessage="Passwords Do Not Match")]
-
+        [Compare("newpass", ErrorMessage = "Passwords Do Not Match")]
         public string confpass { get; set; }
         public string salt { get; set; }
 

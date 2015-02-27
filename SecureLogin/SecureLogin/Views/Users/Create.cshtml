@@ -1,4 +1,4 @@
-﻿@model SecureLogin.Models.User
+﻿@model SecureLogin.Models.RegisterUser
 
 @{
     ViewBag.Title = "Create";
@@ -33,10 +33,20 @@
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.password, htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.Label("Password", htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.password, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.password, "Password Does not meet standards", new { @class = "text-danger" })
+
+                @Html.EditorFor(model => model.newpass, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.newpass, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Confirm Password", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+
+                @Html.EditorFor(model => model.confpass, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.confpass, "", new { @class = "text-danger" })
             </div>
         </div>
 
