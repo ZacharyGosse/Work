@@ -84,8 +84,6 @@ namespace SecureLogin.Controllers
 
 
 
-
-
     /*******Controller Action Methods********/
 
         // GET: Error
@@ -217,12 +215,6 @@ namespace SecureLogin.Controllers
             }
             return View(user);
         
-        }
-
-        // GET: Error
-        public ActionResult Error()
-        {
-            return View();
         }
 
         // GET: Create
