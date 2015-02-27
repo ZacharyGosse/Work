@@ -71,6 +71,18 @@ namespace SecureLogin.Controllers
             return (upc);
         }
 
+        // Custom Dispose for db
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+
+
 
 
     /*******Controller Action Methods********/
@@ -543,16 +555,7 @@ namespace SecureLogin.Controllers
             //Session.Abandon();
             return RedirectToAction("Login");
         }
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-
+       
 
     }
 
