@@ -341,7 +341,7 @@ namespace SecureLogin.Controllers
                         string unlKey = "/Unlock?kstr=" + RandomPassword.Generate(44, PasswordGroup.Uppercase, PasswordGroup.Lowercase, PasswordGroup.Numeric);
                         genLog("Login", "Accout Locking, link = " + unlKey, user.username);
                         user.unlString = unlKey;
-                        ModelState.AddModelError("LoginMsg", "This Account is locked, follow link in email to unlock");
+                        ModelState.AddModelError("LoginMsg", "Account Locked. Follow link in email to unlock");
                         db.Entry(user).State = EntityState.Modified;
                         db.SaveChanges();
                         
