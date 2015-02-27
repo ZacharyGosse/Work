@@ -368,6 +368,7 @@ namespace SecureLogin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ValidateInput(true)]
         public ActionResult Forgot([Bind(Include = "username,email")] UserPassChange upc)
         {
 
