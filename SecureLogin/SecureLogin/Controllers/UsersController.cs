@@ -16,6 +16,8 @@ using System.IO;
 using System.Text.RegularExpressions;
 using SimpleCrypto;
 using System.Windows.Media.Imaging;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace SecureLogin.Controllers
 {
@@ -36,7 +38,26 @@ namespace SecureLogin.Controllers
             logdb.Logs.Add(log);
             logdb.SaveChanges();
         }
-        
+
+        private BitmapImage BitmapFromSource(BitmapSource bitmapsource)
+        {
+            BitmapImage bmp;
+            using (MemoryStream outStream = new MemoryStream())
+            {
+                BitmapEncoder enc = new BmpBitmapEncoder();
+
+                enc.Frames.Add(BitmapFrame.Create(bitmapsource));
+                enc.Save(outStream);
+               bmp = new BitmapImage();
+               bmp.StreamSource = new MemoryStream(outStream.ToArray());
+            }
+            return bmp;
+        }
+
+        public ActionResult Error()
+        {
+            return View();
+        }
 
         // GET: Users
         public ActionResult Index()
@@ -88,7 +109,7 @@ namespace SecureLogin.Controllers
                "image/bmp",
                 "image/png"
             };
-            //BitmapEncoder be = BitmapEncoder.Create(System.Guid);
+           
             if (user.Image == null || user.Image.ContentLength == 0)
             {
 
@@ -108,24 +129,53 @@ namespace SecureLogin.Controllers
 
                 WebImage photo;
                 String newFileName = "";
+              
                 var imagePath = "";
                 var imageThumbPath = "";
 
 
+               
 
-                photo = new System.Web.Helpers.WebImage(user.Image.InputStream);
+                //photo = new System.Web.Helpers.WebImage(user.Image.InputStream,);
 
 
+                Image img = Image.FromStream(user.Image.InputStream);
+                Bitmap bmi = new Bitmap(img);
+               // JpegBitmapDecoder jdec = new JpegBitmapDecoder(user.Image.InputStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+               // BitmapSource bmpSource = jdec.Frames[0];
+               // BitmapImage bi = BitmapFromSource(bmpSource);
+                photo = new WebImage(user.Image.InputStream);
+                newFileName = Guid.NewGuid().ToString() + "_."+photo.ImageFormat;
+                //user.Image.InputStream.Dispose();
+                //
+              //  bmi.Save(@"~\" + imagePath + newFileName, ImageFormat.Jpeg);
 
                 imagePath = "/Content/images/";
-                newFileName = Guid.NewGuid().ToString() + "_." + photo.ImageFormat;
-
-
-                photo.Save(@"~\" + imagePath + newFileName);
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    using (FileStream fs = new FileStream(AppDomain.CurrentDomain.BaseDirectory+imagePath + @newFileName, FileMode.Create, FileAccess.ReadWrite))
+                    {
+                        bmi.Save(memory, ImageFormat.Jpeg);
+                        byte[] bytes = memory.ToArray();
+                        fs.Write(bytes, 0, bytes.Length);
+                    }
+                }
 
                 imageThumbPath = "/Content/images/thumbs/";
-                photo.Resize(width: 100, height: 100, preserveAspectRatio: true, preventEnlarge: true);
-                photo.Save(@"~\" + imageThumbPath + newFileName);
+                bmi = new Bitmap(bmi.GetThumbnailImage(100, 100, null, IntPtr.Zero));
+                //photo.Resize(width: 100, height: 100, preserveAspectRatio: true, preventEnlarge: true);
+               // bmi.Save(@"~\" + imageThumbPath + newFileName);
+
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    using (FileStream fs = new FileStream(AppDomain.CurrentDomain.BaseDirectory + imageThumbPath + @newFileName, FileMode.Create, FileAccess.ReadWrite))
+                    {
+                        bmi.Save(memory, ImageFormat.Jpeg);
+                        byte[] bytes = memory.ToArray();
+                        fs.Write(bytes, 0, bytes.Length);
+                    }
+                }
+
 
                 ruser.avPath = imagePath + newFileName;
                 ruser.thumbPath = imageThumbPath + newFileName;
