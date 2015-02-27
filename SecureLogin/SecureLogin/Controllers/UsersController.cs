@@ -23,9 +23,10 @@ namespace SecureLogin.Controllers
 {
     public class UsersController : Controller
     {
-        
+        // DB Contexts
         private UserDBContext db = new UserDBContext();
         private LogDbContext logdb = new LogDbContext();
+
 
     /*******Controller Private Methods********/
         // Custom Log Method Generator
