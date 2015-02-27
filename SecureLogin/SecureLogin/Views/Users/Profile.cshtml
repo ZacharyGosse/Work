@@ -48,10 +48,7 @@
             </dd>
             <dd>    
             <div>
-                    <!---
-                     <label for="Image">Image</label>
-                     <input type="file" name="Image" />
-                    -->
+                    
                   
                     @Html.TextBoxFor(model => model.Image, new { accept ="image/*", type = "file" })
                     @ViewBag.error

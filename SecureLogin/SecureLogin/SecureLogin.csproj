@@ -266,6 +266,7 @@
     <Folder Include="App_Data\" />
     <Folder Include="Content\Files\images\thumbs\" />
     <Folder Include="Views\Avatar\" />
+    <Folder Include="Views\indexWP\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
