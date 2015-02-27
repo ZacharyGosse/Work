@@ -16,15 +16,20 @@ using System.IO;
 using System.Text.RegularExpressions;
 using SimpleCrypto;
 using System.Windows.Media.Imaging;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace SecureLogin.Controllers
 {
     public class UsersController : Controller
     {
-        
+        // DB Contexts
         private UserDBContext db = new UserDBContext();
         private LogDbContext logdb = new LogDbContext();
-        //Controller Private Methods//
+
+
+    /*******Controller Private Methods********/
+        // Custom Log Method Generator
         private void genLog(string action, string message, string username)
         {
             Log log = new Log();
@@ -36,15 +41,66 @@ namespace SecureLogin.Controllers
             logdb.Logs.Add(log);
             logdb.SaveChanges();
         }
-        
 
-        // GET: Users
-        public ActionResult Index()
+        // Test User/Pass combination
+        private bool IsValid(string username, string password)
         {
-            return View(db.Users.ToList());
+            var crypto = new SimpleCrypto.PBKDF2();
+            bool isValid = false;
+
+            User user = db.Users.Find(username);
+
+            if (user != null)
+            {
+                if (user.password == crypto.Compute(password, user.salt))
+                {
+                    isValid = true;
+                }
+            }
+            return isValid;
         }
 
-        // GET: Users/Profile/5
+        // Create UserPassChange from user
+        private UserPassChange uToUpc(User user)
+        {
+            UserPassChange upc = new UserPassChange();
+            upc.username = user.username;
+            upc.avPath = user.avPath;
+            upc.thumbPath = user.thumbPath;
+            upc.email = user.email;
+
+            return (upc);
+        }
+
+        // Custom Dispose for db
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+
+
+
+
+    /*******Controller Action Methods********/
+
+        // GET: Error
+        public ActionResult Error()
+        {
+            return View();
+        }
+
+        // GET: Index
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        // GET: Profile
         public ActionResult Profile()
         {
             
@@ -62,16 +118,8 @@ namespace SecureLogin.Controllers
             return View(upc);
         }
 
-        private UserPassChange uToUpc(User user){
-            UserPassChange upc = new UserPassChange();
-            upc.username = user.username;
-            upc.avPath = user.avPath;
-            upc.thumbPath = user.thumbPath;
-            upc.email = user.email;
-
-            return (upc);  
-        }
-
+        // POST: Profile
+        //checks for proper image format if one is uploaded and strips metadata
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Profile([Bind(Include = "Image,email,username")] UserPassChange user)
@@ -88,7 +136,7 @@ namespace SecureLogin.Controllers
                "image/bmp",
                 "image/png"
             };
-            //BitmapEncoder be = BitmapEncoder.Create(System.Guid);
+           
             if (user.Image == null || user.Image.ContentLength == 0)
             {
 
@@ -108,24 +156,53 @@ namespace SecureLogin.Controllers
 
                 WebImage photo;
                 String newFileName = "";
+              
                 var imagePath = "";
                 var imageThumbPath = "";
 
 
+               
 
-                photo = new System.Web.Helpers.WebImage(user.Image.InputStream);
+                //photo = new System.Web.Helpers.WebImage(user.Image.InputStream,);
 
 
+                Image img = Image.FromStream(user.Image.InputStream);
+                Bitmap bmi = new Bitmap(img);
+               // JpegBitmapDecoder jdec = new JpegBitmapDecoder(user.Image.InputStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+               // BitmapSource bmpSource = jdec.Frames[0];
+               // BitmapImage bi = BitmapFromSource(bmpSource);
+                photo = new WebImage(user.Image.InputStream);
+                newFileName = Guid.NewGuid().ToString() + "_."+photo.ImageFormat;
+                //user.Image.InputStream.Dispose();
+                //
+              //  bmi.Save(@"~\" + imagePath + newFileName, ImageFormat.Jpeg);
 
                 imagePath = "/Content/images/";
-                newFileName = Guid.NewGuid().ToString() + "_." + photo.ImageFormat;
-
-
-                photo.Save(@"~\" + imagePath + newFileName);
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    using (FileStream fs = new FileStream(AppDomain.CurrentDomain.BaseDirectory+imagePath + @newFileName, FileMode.Create, FileAccess.ReadWrite))
+                    {
+                        bmi.Save(memory, ImageFormat.Jpeg);
+                        byte[] bytes = memory.ToArray();
+                        fs.Write(bytes, 0, bytes.Length);
+                    }
+                }
 
                 imageThumbPath = "/Content/images/thumbs/";
-                photo.Resize(width: 100, height: 100, preserveAspectRatio: true, preventEnlarge: true);
-                photo.Save(@"~\" + imageThumbPath + newFileName);
+                bmi = new Bitmap(bmi.GetThumbnailImage(100, 100, null, IntPtr.Zero));
+                //photo.Resize(width: 100, height: 100, preserveAspectRatio: true, preventEnlarge: true);
+               // bmi.Save(@"~\" + imageThumbPath + newFileName);
+
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    using (FileStream fs = new FileStream(AppDomain.CurrentDomain.BaseDirectory + imageThumbPath + @newFileName, FileMode.Create, FileAccess.ReadWrite))
+                    {
+                        bmi.Save(memory, ImageFormat.Jpeg);
+                        byte[] bytes = memory.ToArray();
+                        fs.Write(bytes, 0, bytes.Length);
+                    }
+                }
+
 
                 ruser.avPath = imagePath + newFileName;
                 ruser.thumbPath = imageThumbPath + newFileName;
@@ -141,20 +218,21 @@ namespace SecureLogin.Controllers
             return View(user);
         
         }
+
+        // GET: Error
         public ActionResult Error()
         {
             return View();
         }
 
-        // GET: Users/Create
+        // GET: Create
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: Users/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more Profile see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST:Create
+        // Validation, generate key, and log
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ValidateInput(true)]
@@ -162,32 +240,35 @@ namespace SecureLogin.Controllers
         {
             if (ModelState.IsValid)
             {
-            
-               
                 var crypto = new SimpleCrypto.PBKDF2();
                 regU.newpass = crypto.Compute(regU.newpass);
-                
-
                 User user = new User();
+
                 user.username = regU.username;
                 user.password = regU.newpass;
                 user.salt = crypto.Salt;
                 user.email = regU.email;
                 user.activated = false;
+
                 string actKey = "/Activ?kstr=" + RandomPassword.Generate(44, PasswordGroup.Uppercase, PasswordGroup.Lowercase, PasswordGroup.Numeric);
                 user.actString = actKey;
+
                 regU = null;
+
                 db.Users.Add(user);
                 db.SaveChanges();
+
                 Session["smsg"] = "User Created, You will recieve a verification email";
                 genLog("Create", "User Created: Verify Link = " + actKey, user.username);
+
                 return RedirectToAction("Success");
             }
 
             return View(regU);
         }
 
-        // GET: Users/Edit/5
+        // GET: Edit
+        // Authenticate
         public ActionResult Edit()
         {
             
@@ -207,9 +288,8 @@ namespace SecureLogin.Controllers
             return View(upc);
         }
 
-        // POST: Users/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        
+        // POST: Edit
+        // Validate, update password
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ValidateInput(true)]
@@ -237,7 +317,7 @@ namespace SecureLogin.Controllers
         }
 
     
-
+        // GET: Login
         [HttpGet]
         public ActionResult Login()
         {
@@ -248,9 +328,10 @@ namespace SecureLogin.Controllers
             return View();
         }
 
-        // POST: Users/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more Profile see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Login
+        // ( Validate | Attempts++ | Lock ): Handle logging in
+        // Lock user if attempts = 5, generate unlock token, log
+        // Login, generate log
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Login([Bind(Include = "username,password")] User user,bool rememberMe)
@@ -298,6 +379,9 @@ namespace SecureLogin.Controllers
             return View(user);
         }
 
+        // GET: Reset
+        // validate reset string and user
+        // return user Reset if valid
         public ActionResult Reset(string kstr)
         {
             if (kstr != null && kstr.Length > 0 && kstr.Length < 45)
@@ -316,28 +400,31 @@ namespace SecureLogin.Controllers
         }
 
 
-
+        // POST: Reset
+        // validate, reset pass, log
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Reset([Bind(Include = "username,newpass,confpass")] UserPassChange upc)
         {
-
             var crypto = new SimpleCrypto.PBKDF2();
-            
-            //username = ViewBag.username;
-            //upc.username = this.User.Identity.Name;
-            User user = db.Users.Find(upc.username) ;
+            User user = db.Users.Find(upc.username);
+
             upc.password = crypto.Compute(upc.newpass);
             user.password = upc.password;
             user.forString = "";
-                user.salt = crypto.Salt;
-                db.Entry(user).State = EntityState.Modified;
-                db.SaveChanges();
-                genLog("Reset","Password Reset", user.username);
-                Session["smsg"] = "Your password has been reset.";
-                //ModelState.AddModelError("LoginMsg", "Password Successfuly Changed!");
-                return RedirectToAction("Success");
+            user.salt = crypto.Salt;
+
+            db.Entry(user).State = EntityState.Modified;
+            db.SaveChanges();
+
+            genLog("Reset","Password Reset", user.username);
+            Session["smsg"] = "Your password has been reset.";
+
+            return RedirectToAction("Success");
         }
+
+        // GET: Unlock
+        // validate token, unlock user, log
         public ActionResult Unlock(string kstr)
         {
             if (kstr != null && kstr.Length > 0 && kstr.Length < 45)
@@ -361,11 +448,14 @@ namespace SecureLogin.Controllers
             return RedirectToAction("Index");
         }
 
+        // GET: Unlock
         public ActionResult Forgot()
         {
             return View();
         }
 
+        // POST: Forgot
+        // Validate user/email, generate key, log
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ValidateInput(true)]
@@ -399,33 +489,19 @@ namespace SecureLogin.Controllers
             return View(upc);
         }
 
-        private bool IsValid(string username, string password)
-        {
-            var crypto = new SimpleCrypto.PBKDF2();
-            bool isValid = false;
-
-            User user = db.Users.Find(username);
-
-            if (user != null)
-            {
-                if (user.password == crypto.Compute(password, user.salt))
-                {
-                    isValid = true;
-                }
-            }
-            return isValid;
-        }
-
-
-
+        // GET: SignOut
+        // Signout, kill session, log
         public ActionResult SignOut()
         {
-            genLog("SignOut", "Logged Off", this.User.Identity.Name);
             FormsAuthentication.SignOut();
+            Session.Abandon();
+            genLog("SignOut", "Logged Off", this.User.Identity.Name);
 
             return RedirectToAction("LogOut");
         }
 
+        // GET: Logout
+        // Show logout page after successful signout
         public ActionResult LogOut()
         {
 
@@ -433,7 +509,8 @@ namespace SecureLogin.Controllers
             return View();
         }
 
-
+        // GET: Activate
+        // Validate token, activate user, log
         public ActionResult Activ(string kstr)
         {
             if (kstr != null && kstr.Length > 0 && kstr.Length < 45)
@@ -443,21 +520,23 @@ namespace SecureLogin.Controllers
 
                 if (user != null)
                 {
-
                     user.actString = null;
                     user.activated = true;
                     db.Entry(user).State = EntityState.Modified;
                     db.SaveChanges();
+
                     genLog("Activ", "Accout Verified", user.username);
                     Session["smsg"] = "Your account has been activated.";
-                    //ModelState.AddModelError("LoginMsg", "Password Successfuly Changed!");
+                   
                     return RedirectToAction("Success");
-                    
                 }
             }
             return RedirectToAction("Index");
         }
 
+        // GET: Success
+        // If there is a success message pending, go to Success
+        // If there is not, go to Index
         public ActionResult Success()
         {
             if (Session["smsg"] == null)
@@ -467,6 +546,9 @@ namespace SecureLogin.Controllers
             return View();
         }
 
+        // POST: Success
+        // *Session was killed in view
+        // Just redirect to login
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Success(string topost)
@@ -474,16 +556,7 @@ namespace SecureLogin.Controllers
             //Session.Abandon();
             return RedirectToAction("Login");
         }
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-
+       
 
     }
 
