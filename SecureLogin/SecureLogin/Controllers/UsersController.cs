@@ -117,7 +117,8 @@ namespace SecureLogin.Controllers
         }
 
         // POST: Profile
-        //checks for proper image format if one is uploaded and strips metadata
+        // checks for proper image format if one is uploaded and strips metadata
+        // Strips by encoding to BitMap and then jpeg
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Profile([Bind(Include = "Image,email,username")] UserPassChange user)
@@ -158,22 +159,11 @@ namespace SecureLogin.Controllers
                 var imagePath = "";
                 var imageThumbPath = "";
 
-
-               
-
-                //photo = new System.Web.Helpers.WebImage(user.Image.InputStream,);
-
-
                 Image img = Image.FromStream(user.Image.InputStream);
                 Bitmap bmi = new Bitmap(img);
-               // JpegBitmapDecoder jdec = new JpegBitmapDecoder(user.Image.InputStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-               // BitmapSource bmpSource = jdec.Frames[0];
-               // BitmapImage bi = BitmapFromSource(bmpSource);
+
                 photo = new WebImage(user.Image.InputStream);
                 newFileName = Guid.NewGuid().ToString() + "_."+photo.ImageFormat;
-                //user.Image.InputStream.Dispose();
-                //
-              //  bmi.Save(@"~\" + imagePath + newFileName, ImageFormat.Jpeg);
 
                 imagePath = "/Content/images/";
                 using (MemoryStream memory = new MemoryStream())
@@ -188,8 +178,6 @@ namespace SecureLogin.Controllers
 
                 imageThumbPath = "/Content/images/thumbs/";
                 bmi = new Bitmap(bmi.GetThumbnailImage(100, 100, null, IntPtr.Zero));
-                //photo.Resize(width: 100, height: 100, preserveAspectRatio: true, preventEnlarge: true);
-               // bmi.Save(@"~\" + imageThumbPath + newFileName);
 
                 using (MemoryStream memory = new MemoryStream())
                 {
@@ -201,17 +189,16 @@ namespace SecureLogin.Controllers
                     }
                 }
 
-
                 ruser.avPath = imagePath + newFileName;
                 ruser.thumbPath = imageThumbPath + newFileName;
                 user.avPath = ruser.avPath;
                 user.thumbPath = ruser.thumbPath;
                 user.email = ruser.email;
+
                 db.Entry(ruser).State = EntityState.Modified;
                 db.SaveChanges();
 
                 genLog("Profile", "Update Profile", user.username);
-
             }
             return View(user);
         
